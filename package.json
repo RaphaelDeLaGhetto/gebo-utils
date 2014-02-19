@@ -24,6 +24,7 @@
     "url": "https://github.com/RaphaelDeLaGhetto/gebo-utils/issues"
   },
   "dependencies": {
-    "grunt": "~0.4.2"
+    "grunt": "~0.4.2",
+    "grunt-contrib-nodeunit": "~0.3.2"
   }
 }
