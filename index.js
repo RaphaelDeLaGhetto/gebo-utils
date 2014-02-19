@@ -31,17 +31,6 @@ exports.constants = {
   };
 
 /**
- * Return a unique identifier with the given `len`.
- *
- *     utils.uid(10);
- *     // => "FDaS435D2z"
- *
- * @param {Number} len
- * @return {String}
- * @api private
- */
-
-/**
  * Return a random int, used by `utils.uid()`
  *
  * @param {Number} min
@@ -57,18 +46,32 @@ function _getRandomInt(min, max) {
   }
 exports.getRandomInt = _getRandomInt;
 
-//exports.uid = function (len) {
-//    var buf = [],
-//        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
-//        charlen = chars.length;
-//
-//    for (var i = 0; i < len; ++i) {
-//      buf.push(chars[_getRandomInt(0, charlen - 1)]);
-//    }
-//
-//    return buf.join('');
-//  };
-//
+
+/**
+ * Return a unique identifier with the given `len`.
+ *
+ *     utils.uid(10);
+ *     // => "FDaS435D2z"
+ *
+ * @param int 
+ * @return String
+ */
+exports.getUid = function (len) {
+    if (len <= 0) {
+      throw 'A UID\'s length can\'t be less than or equal to zero';
+    }
+
+    var buf = [],
+        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+        charlen = chars.length;
+
+    for (var i = 0; i < len; ++i) {
+      buf.push(chars[_getRandomInt(0, charlen - 1)]);
+    }
+
+    return buf.join('');
+  };
+
 ///**
 // * Make the gebo user's email address suitable for naming
 // * a database... and more!

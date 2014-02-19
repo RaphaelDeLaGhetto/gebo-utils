@@ -178,6 +178,44 @@ exports.getRandomInt = {
 };
 
 /**
+ * getUid
+ */
+exports.getUid = {
+
+    'Return pseudo-random string of alphanumeric characters of the specified length': function(test) {
+        test.expect(2);
+        var uid = utils.getUid(1);
+        test.ok(uid.length === 1);
+        uid = utils.getUid(256);
+        test.ok(uid.length === 256);
+        test.done();
+    },
+
+    'Should throw exception if len is less than or equal to zero': function(test) {
+        test.expect(2);
+        var randInt;
+        try {
+            randInt = utils.getUid(0);
+            test.ok(false);
+        }
+        catch(err) {
+            test.equal(err, 'A UID\'s length can\'t be less than or equal to zero');
+        }
+
+        try {
+            randInt = utils.getUid(-1);
+            test.ok(false);
+        }
+        catch(err) {
+            test.equal(err, 'A UID\'s length can\'t be less than or equal to zero');
+            test.done();
+        }
+    },
+    
+};
+
+
+/**
  * objectToQueryString
  */
 exports.objectToQueryString = {
