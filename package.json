@@ -1,0 +1,26 @@
+{
+  "name": "gebo-utils",
+  "version": "0.0.0",
+  "description": "Common utilities for the gebo-server",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "grunt nodeunit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RaphaelDeLaGhetto/gebo-utils.git"
+  },
+  "keywords": [
+    "gebo",
+    "agent",
+    "utilities"
+  ],
+  "author": "Daniel Bidulock",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RaphaelDeLaGhetto/gebo-utils/issues"
+  }
+}
