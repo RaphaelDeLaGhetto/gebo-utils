@@ -1,10 +1,11 @@
 var path = require('path'),
-    utils = require('..')(path.resolve('__dirname/..')),
+    //utils = require('..')(path.resolve(__dirname + '/..')),
+    utils = require('..'),
 //    config = require('../../config/config'),
     fs = require('fs'),
 //    nock = require('nock'),
     mkdirp = require('mkdirp'),
-    nconf = require('nconf'),
+//    nconf = require('nconf'),
 //    agentSchema = require('../../schemata/agent'),
     rimraf = require('rimraf');
 
@@ -12,7 +13,7 @@ var path = require('path'),
 //nconf.argv().env().file({ file: 'local.json' });
 //var gebo = require('../../schemata/gebo')(nconf.get('testDb'));
 
-nconf.file({ file: path.resolve('__dirname/..') + '/gebo.json' });
+//nconf.file({ file: path.resolve(__dirname + '/../gebo.json') });
 
 /**
  * getMongoCollectionName
@@ -794,16 +795,16 @@ exports.getPrivateKeyAndCertificate = {
 /**
  * getDefaultDomain
  */
-exports.getDefaultDomain = {
-    'Return the host with https port': function(test) {
-        test.expect(1);
-
-        // Manually create the default host
-        var manualDomain = nconf.get('domain') + ':' + nconf.get('httpsPort');
-                
-        var host = utils.getDefaultDomain();
-
-        test.equal(host, manualDomain);
-        test.done();
-    },
-};
+//exports.getDefaultDomain = {
+//    'Return the host with https port': function(test) {
+//        test.expect(1);
+//
+//        // Manually create the default host
+//        var manualDomain = nconf.get('domain') + ':' + nconf.get('httpsPort');
+//                
+//        var host = utils.getDefaultDomain();
+//
+//        test.equal(host, manualDomain);
+//        test.done();
+//    },
+//};

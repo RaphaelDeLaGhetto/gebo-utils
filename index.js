@@ -1,6 +1,6 @@
 'use strict';
 
-var nconf = require('nconf'),
+var //nconf = require('nconf'),
     q = require('q'),
     fs = require('fs'),
 //    mv = require('mv'),
@@ -8,9 +8,10 @@ var nconf = require('nconf'),
 //    agentSchema = require('../schemata/agent');
 
 
-module.exports = function(absoluteGeboRoot) {
+//module.exports = function(absoluteGeboRoot) {
+module.exports = function() {
 
-    nconf.file({ file: absoluteGeboRoot + '/gebo.json' });
+    //nconf.file({ file: absoluteGeboRoot + '/gebo.json' });
    
     /**
      * Mongo naming restriction constants
@@ -405,14 +406,14 @@ module.exports = function(absoluteGeboRoot) {
      *
      * @return string
      */
-    function _getDefaultDomain() {
-        var host = nconf.get('domain');
-        if (nconf.get('httpsPort')) {
-          host += ':' + nconf.get('httpsPort');
-        }
-        return host;
-      };
-    exports.getDefaultDomain = _getDefaultDomain;
+//    function _getDefaultDomain() {
+//        var host = nconf.get('domain');
+//        if (nconf.get('httpsPort')) {
+//          host += ':' + nconf.get('httpsPort');
+//        }
+//        return host;
+//      };
+//    exports.getDefaultDomain = _getDefaultDomain;
     
     return exports;
-};
+}();
