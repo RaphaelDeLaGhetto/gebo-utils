@@ -400,7 +400,40 @@ module.exports = function() {
     
       };
     
-   
+    /**
+     * Take the incoming filename and its extension
+     * and return the hypothetical output filename
+     *
+     * @param string
+     * @param string
+     *
+     * @return string
+     */
+    function _getOutputFileName(path, extension) {
+        var filename = path.split('/');
+        filename = filename[filename.length - 1];
+        filename = filename.split('.');
+    
+        // No extension found
+        if (filename.length === 1) {
+          return filename[0] + '.' + extension;
+        }
+    
+        // Hidden file
+        if (filename[0] === '') {
+          filename = filename.slice(1);
+          filename[0] = '.' + filename[0];
+          if (filename.length === 1) {
+            return filename[0] + '.' + extension;
+          }
+        }
+    
+        filename = filename.slice(0, -1);
+        
+        return filename + '.' + extension;
+      };
+    exports.getOutputFileName = _getOutputFileName;
+  
     /**
      * Get the domain and HTTPS port set in local.json
      *
