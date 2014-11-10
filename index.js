@@ -366,7 +366,7 @@ module.exports = function() {
      * @return timeoutObject
      */
     function _setTimeLimit(options, pidFile, done) {
-        if (options.timeLimit) {
+        if (options && options.timeLimit) {
           var timeout = setTimeout(function() {
             var kill = 'kill $(cat ' + pidFile + ')';
             if (logLevel === 'trace') logger.warn('gebo-tesseract-action', kill);
