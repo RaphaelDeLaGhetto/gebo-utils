@@ -1,18 +1,20 @@
 'use strict';
 
-var //nconf = require('nconf'),
+var childProcess = require('child_process'),
+    nconf = require('nconf'),
     q = require('q'),
     fs = require('fs'),
-//    mv = require('mv'),
-    pki = require('node-forge').pki;
-//    agentSchema = require('../schemata/agent');
+    pki = require('node-forge').pki,
+    winston = require('winston');
 
 
-//module.exports = function(absoluteGeboRoot) {
 module.exports = function() {
 
-    //nconf.file({ file: absoluteGeboRoot + '/gebo.json' });
-   
+    // Logging stuff           
+    nconf.file({ file: './gebo.json' });
+    var logLevel = nconf.get('logLevel');
+    var logger = new (winston.Logger)({ transports: [ new (winston.transports.Console)({ colorize: true }) ] });
+
     /**
      * Mongo naming restriction constants
      */
@@ -196,86 +198,6 @@ module.exports = function() {
     
     
     /**
-     * Recursively save a batch of files
-     *
-     * @param Object - req.files
-     * @param Object - verified user object 
-     * @param array - keys in the req.files object
-     * @param index - the current index in the array
-     * @param array - file objects
-     *
-     * @return promise
-     */
-//    function _saveFilesToAgentDirectory(files, verified, keys, index, fileObjects) {
-//       var deferred = q.defer();
-//    
-//        if (!files) {
-//          deferred.resolve();
-//          return deferred.promise;
-//        }
-//    
-//        if (keys === undefined) {
-//          keys = Object.keys(files);
-//        }
-//    
-//        if (index === undefined) {
-//          index = keys.length;
-//        }
-//    
-//        if (fileObjects === undefined) {
-//          fileObjects = [];
-//        }
-//    
-//        var dir = nconf.get('docs') + '/' + verified.dbName + '/' + verified.collectionName;
-//    
-//        if (index > 0) {
-//          _saveFilesToAgentDirectory(files, verified, keys, --index, fileObjects).
-//            then(function() {
-//                    _getSafeFileName(files[keys[index]].name, dir).
-//                        then(function(filename) {
-//    
-//                            // Make file document for DB
-//                            var db = new agentSchema(verified.dbName);
-//                            var file = new db.fileModel({
-//                                    name: filename,
-//                                    collectionName: verified.collectionName,
-//                                    type: files[keys[index]].type,
-//                                    size: files[keys[index]].size,
-//                                }); 
-//                            
-//                            file.save(function(err, file) {
-//                                fileObjects.push(file)
-//                                db.connection.db.close();
-//                                if (err) {
-//                                 deferred.reject(err);
-//                                }
-//                                else {
-//                                  mv(files[keys[index]].path, dir + '/' + filename, { mkdirp: true },
-//                                      function(err) {
-//                                          if (err) {
-//                                            deferred.reject(err);
-//                                          }
-//                                          else {
-//                                            deferred.resolve(fileObjects);
-//                                          }
-//                                        });
-//                                }
-//                              });
-//                          }).
-//                        catch(function(err) {
-//                            deferred.reject(err);
-//                          });
-//              });
-//        }
-//        else {
-//          deferred.resolve(fileObjects);
-//        }
-//    
-//        return deferred.promise;
-//      };
-//    exports.saveFilesToAgentDirectory = _saveFilesToAgentDirectory; 
-    
-    /**
      * Append a copy number to a filename if a 
      * file by that same name already exists
      *
@@ -435,18 +357,68 @@ module.exports = function() {
     exports.getOutputFileName = _getOutputFileName;
   
     /**
-     * Get the domain and HTTPS port set in local.json
+     * Set time limit on operating system process
      *
-     * @return string
+     * @param object
+     * @param string
+     * @param function
+     *
+     * @return timeoutObject
      */
-//    function _getDefaultDomain() {
-//        var host = nconf.get('domain');
-//        if (nconf.get('httpsPort')) {
-//          host += ':' + nconf.get('httpsPort');
-//        }
-//        return host;
-//      };
-//    exports.getDefaultDomain = _getDefaultDomain;
-    
+    function _setTimeLimit(options, pidFile, done) {
+        if (options.timeLimit) {
+          var timeout = setTimeout(function() {
+            var kill = 'kill $(cat ' + pidFile + ')';
+            if (logLevel === 'trace') logger.warn('gebo-tesseract-action', kill);
+            childProcess.exec(kill, function(err, stdout, stderr) {
+                if (err) {
+                  if (logLevel === 'trace') logger.error('gebo-tesseract-action', 'timeout', err);
+                }
+                if (stderr) {
+                  if (logLevel === 'trace') logger.warn('gebo-tesseract-action', 'timeout', stderr);
+                }
+                if (stdout) {
+                  if (logLevel === 'trace') logger.info('gebo-tesseract-action', 'timeout', stdout);
+                }
+              });
+          }, options.timeLimit);
+          done(timeout);
+        }
+        else {
+          done(false);
+        }
+      };
+    exports.setTimeLimit = _setTimeLimit;
+
+    /**
+     * Clear the timer and record the time remaining
+     *
+     * @param timeoutObject
+     * @param object
+     */
+    function _stopTimer(timer, options) {
+        if (timer) {
+          options.timeLimit = _getTimeLeft(timer);
+          clearTimeout(timer);
+        }
+      };
+    exports.stopTimer = _stopTimer;
+
+    /**
+     * Get time left
+     *
+     * 2014-11-6
+     * http://stackoverflow.com/questions/3144711/javascript-find-the-time-left-in-a-settimeout
+     * Courtesy of Fluffy
+     *
+     * @param timeoutObject
+     *
+     * @return integer
+     */
+    function _getTimeLeft(timeout) {
+        return Math.ceil(timeout._idleStart + timeout._idleTimeout - Date.now());
+      };
+    exports.getTimeLeft = _getTimeLeft;   
+
     return exports;
-}();
+  }();
