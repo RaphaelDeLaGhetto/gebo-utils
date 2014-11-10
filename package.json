@@ -26,11 +26,14 @@
   "dependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-nodeunit": "~0.3.2",
+    "nconf": "^0.6.9",
+    "node-forge": "~0.2.30",
     "q": "~1.0.0",
-    "node-forge": "~0.2.30"
+    "winston": "^0.8.3"
   },
   "devDependencies": {
     "mkdirp": "~0.3.5",
-    "rimraf": "~2.2.6"
+    "rimraf": "~2.2.6",
+    "sinon": "^1.11.1"
   }
 }
