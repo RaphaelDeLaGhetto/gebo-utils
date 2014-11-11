@@ -369,16 +369,16 @@ module.exports = function() {
         if (options && options.timeLimit) {
           var timeout = setTimeout(function() {
             var kill = 'kill $(cat ' + pidFile + ')';
-            if (logLevel === 'trace') logger.warn('gebo-tesseract-action', kill);
+            if (logLevel === 'trace') logger.warn('process', kill);
             childProcess.exec(kill, function(err, stdout, stderr) {
                 if (err) {
-                  if (logLevel === 'trace') logger.error('gebo-tesseract-action', 'timeout', err);
+                  if (logLevel === 'trace') logger.error('process', 'timeout', err);
                 }
                 if (stderr) {
-                  if (logLevel === 'trace') logger.warn('gebo-tesseract-action', 'timeout', stderr);
+                  if (logLevel === 'trace') logger.warn('process', 'timeout', stderr);
                 }
                 if (stdout) {
-                  if (logLevel === 'trace') logger.info('gebo-tesseract-action', 'timeout', stdout);
+                  if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
                 }
               });
           }, options.timeLimit);
