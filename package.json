@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "mkdirp": "~0.3.5",
-    "rimraf": "~2.2.6",
     "sinon": "^1.11.1"
   }
 }
