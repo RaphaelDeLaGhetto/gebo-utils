@@ -1,6 +1,6 @@
 {
   "name": "gebo-utils",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Common utilities for the gebo-server",
   "main": "index.js",
   "directories": {
