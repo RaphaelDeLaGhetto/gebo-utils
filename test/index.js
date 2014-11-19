@@ -2,9 +2,7 @@ var childProcess = require('child_process'),
     exec = childProcess.exec,
     path = require('path'),
     utils = require('..'),
-    fs = require('fs'),
-    mkdirp = require('mkdirp'),
-    rimraf = require('rimraf'),
+    fs = require('fs-extra'),
     sinon = require('sinon');
 
 
@@ -267,7 +265,7 @@ exports.saveFilesToAgentDirectory = {
     },
     
     tearDown: function (callback) {
-        rimraf.sync('docs/dan_at_example_dot_com');
+        fs.removeSync('docs/dan_at_example_dot_com');
 
         var agentDb = new agentSchema('dan@example.com'); 
         agentDb.connection.on('open', function(err) {
@@ -292,7 +290,7 @@ exports.getSafeFileName = {
             /**
              * Write some files to /tmp
              */
-            mkdirp.sync('docs/safeFileNameTests');
+            fs.mkdirsSync('docs/safeFileNameTests');
             fs.writeFileSync('docs/safeFileNameTests/aTestFile.txt', 'Word to your mom');
             fs.writeFileSync('docs/safeFileNameTests/anotherTestFile(5).txt', 'I like to move it move it!');
             fs.writeFileSync('docs/safeFileNameTests/noExtension', 'Bass! How low can you go?');
@@ -307,7 +305,7 @@ exports.getSafeFileName = {
     },
     
     tearDown: function (callback) {
-        rimraf.sync('docs/safeFileNameTests');
+        fs.removeSync('docs/safeFileNameTests');
         callback();
     },
 
@@ -535,26 +533,87 @@ exports.setTimeLimit = {
     },
 
     'Kill a long-running process': function(test) {
-        test.expect(1);
-        var options = { timeLimit: 1000 };
-        utils.setTimeLimit(options, 'file.pid', function(timer) {
-            _clock.tick(1000);
-            test.ok(childProcess.exec.called);
-            test.done();
+        test.expect(3);
+
+        // fs.readFile needs to return something, even though no file
+        // actually exists
+        sinon.stub(fs, 'readFile', function(path, enc, done) {
+            done(null, '12345');            
           });
+
+        var options = { timeLimit: 1000, pidFile: 'file.pid' };
+        var timer = utils.setTimeLimit(options);
+        _clock.tick(1000);
+        test.ok(childProcess.exec.called);
+        test.ok(childProcess.exec.calledWith('kill 12345'));
+        test.ok(fs.readFile.called);
+
+        fs.readFile.restore();
+        test.done();
     },
+
+    'Do nothing if there\'s no PID file on the disk': function(test) {
+        test.expect(2);
+        sinon.spy(fs, 'readFile');
+
+        var options = { timeLimit: 1000, pidFile: 'file.pid' };
+        var timer = utils.setTimeLimit(options);
+ 
+        test.ok(fs.readFile.called);
+        test.ok(!childProcess.exec.called);
+
+        fs.readFile.restore();
+        test.done();
+    },
+
 
     'Don\'t kill the process if timer is cleared': function(test) {
         test.expect(1);
-        var options = { timeLimit: 1000 };
-        utils.setTimeLimit(options, 'file.pid', function(timer) {
-            _clock.tick(999);
-            clearTimeout(timer);
-            _clock.tick(999);
-            test.ok(!childProcess.exec.called);
-            test.done();
-          });
+        var options = { timeLimit: 1000, pidFile: 'file.pid' };
+        var timer = utils.setTimeLimit(options);
+        _clock.tick(999);
+        clearTimeout(timer);
+        _clock.tick(999);
+        test.ok(!childProcess.exec.called);
+        test.done();
     },
+
+    'Don\'t barf if there\'s no PID specified': function(test) {
+        test.expect(2);
+        sinon.spy(fs, 'readFile');
+
+        var options = { timeLimit: 1000 };
+        var timer = utils.setTimeLimit(options);
+ 
+        test.ok(!fs.readFile.called);
+        test.ok(!childProcess.exec.called);
+
+        fs.readFile.restore();
+        test.done();
+    },
+
+
+//    'Kill a long-running process': function(test) {
+//        test.expect(1);
+//        var options = { timeLimit: 1000 };
+//        utils.setTimeLimit(options, 'file.pid', function(timer) {
+//            _clock.tick(1000);
+//            test.ok(childProcess.exec.called);
+//            test.done();
+//          });
+//    },
+//
+//    'Don\'t kill the process if timer is cleared': function(test) {
+//        test.expect(1);
+//        var options = { timeLimit: 1000 };
+//        utils.setTimeLimit(options, 'file.pid', function(timer) {
+//            _clock.tick(999);
+//            clearTimeout(timer);
+//            _clock.tick(999);
+//            test.ok(!childProcess.exec.called);
+//            test.done();
+//          });
+//    },
 };
 
 

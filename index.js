@@ -3,7 +3,7 @@
 var childProcess = require('child_process'),
     nconf = require('nconf'),
     q = require('q'),
-    fs = require('fs'),
+    fs = require('fs-extra'),
     pki = require('node-forge').pki,
     winston = require('winston');
 
@@ -360,35 +360,61 @@ module.exports = function() {
      * Set time limit on operating system process
      *
      * @param object
-     * @param string
-     * @param function
      *
      * @return timeoutObject
      */
-    function _setTimeLimit(options, pidFile, done) {
-        if (options && options.timeLimit) {
-          var timeout = setTimeout(function() {
-            var kill = 'kill $(cat ' + pidFile + ')';
-            if (logLevel === 'trace') logger.warn('process', kill);
-            childProcess.exec(kill, function(err, stdout, stderr) {
-                if (err) {
-                  if (logLevel === 'trace') logger.error('process', 'timeout', err);
-                }
-                if (stderr) {
-                  if (logLevel === 'trace') logger.warn('process', 'timeout', stderr);
-                }
-                if (stdout) {
-                  if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
-                }
-              });
-          }, options.timeLimit);
-          done(timeout);
+    function _setTimeLimit(options) {
+        if (options && options.timeLimit && options.pidFile) {
+          fs.readFile(options.pidFile, 'utf8', function(err, pid) {
+              if (err || !pid) {
+                return false;
+              }
+              var timeout = setTimeout(function() {
+                var kill = 'kill ' + pid;
+                if (logLevel === 'trace') logger.warn('process', kill);
+                childProcess.exec(kill, function(err, stdout, stderr) {
+                    if (err) {
+                      if (logLevel === 'trace') logger.error('process', 'timeout', err);
+                    }
+                    if (stderr) {
+                      if (logLevel === 'trace') logger.warn('process', 'timeout', stderr);
+                    }
+                    if (stdout) {
+                      if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
+                    }
+                  });
+              }, options.timeLimit);
+              return timeout;
+            });
         }
-        else {
-          done(false);
-        }
+        return false;
       };
     exports.setTimeLimit = _setTimeLimit;
+
+//    function _setTimeLimit(options, pidFile, done) {
+//        if (options && options.timeLimit) {
+//          var timeout = setTimeout(function() {
+//            var kill = 'kill $(cat ' + pidFile + ')';
+//            if (logLevel === 'trace') logger.warn('process', kill);
+//            childProcess.exec(kill, function(err, stdout, stderr) {
+//                if (err) {
+//                  if (logLevel === 'trace') logger.error('process', 'timeout', err);
+//                }
+//                if (stderr) {
+//                  if (logLevel === 'trace') logger.warn('process', 'timeout', stderr);
+//                }
+//                if (stdout) {
+//                  if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
+//                }
+//              });
+//          }, options.timeLimit);
+//          done(timeout);
+//        }
+//        else {
+//          done(false);
+//        }
+//      };
+//    exports.setTimeLimit = _setTimeLimit;
 
     /**
      * Clear the timer and record the time remaining
