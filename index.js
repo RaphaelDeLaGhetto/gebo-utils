@@ -420,5 +420,35 @@ module.exports = function() {
       };
     exports.getTimeLeft = _getTimeLeft;   
 
+    /**
+     * Remove all of the given files from the
+     * /tmp directory
+     *
+     * @param Object - req.files
+     * @param function
+     */
+    function _deleteTmpFiles(files, done) {
+        var keys;
+        if (files) {
+          keys = Object.keys(files);
+        }
+        if (keys && keys.length) {
+          fs.unlink(files[keys[0]].path, function(err) {
+                delete files[keys[0]];
+                if (err) {
+                  done(err);
+                }
+                else {
+                  _deleteTmpFiles(files, done);
+                }
+            });
+        }
+        else {
+          done(null);
+        }
+      };
+    exports.deleteTmpFiles = _deleteTmpFiles;
+
+
     return exports;
   }();
