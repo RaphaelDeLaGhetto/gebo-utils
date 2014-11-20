@@ -666,9 +666,9 @@ exports.stopTimer = {
 };
 
 /**
- * writePidToFile
+ * echoPidToFile
  */
-exports.writePidToFile = {
+exports.echoPidToFile = {
 
     'Return an echo-to-file command string if pidFile is provided': function(test) {
         test.expect(1);
