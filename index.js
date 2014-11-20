@@ -366,27 +366,22 @@ module.exports = function() {
      */
     function _setTimeLimit(options, done) {
         if (options && options.timeLimit && options.pidFile) {
-          fs.readFile(options.pidFile, 'utf8', function(err, pid) {
-                if (err || !pid) {
-                  return done(false);
-                }
-                var timeout = setTimeout(function() {
-                    var kill = 'kill ' + pid;
-                    if (logLevel === 'trace') logger.warn('process', kill);
-                    childProcess.exec(kill, function(err, stdout, stderr) {
-                        if (err) {
-                          if (logLevel === 'trace') logger.error('process', 'timeout', err);
-                        }
-                        if (stderr) {
-                          if (logLevel === 'trace') logger.warn('process', 'timeout', stderr);
-                        }
-                        if (stdout) {
-                          if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
-                        }
-                      });
-                    }, options.timeLimit);
-                done(timeout);
-            });
+          var timeout = setTimeout(function() {
+                var kill = 'kill $(cat ' + options.pidFile + ')';
+                if (logLevel === 'trace') logger.warn('process', kill);
+                childProcess.exec(kill, function(err, stdout, stderr) {
+                    if (err) {
+                      if (logLevel === 'trace') logger.error('process', 'timeout', err);
+                    }
+                    if (stderr) {
+                      if (logLevel === 'trace') logger.warn('process', 'timeout', stderr);
+                    }
+                    if (stdout) {
+                      if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
+                    }
+                  });
+                }, options.timeLimit);
+          done(timeout);
         }
         else {
           done(false);

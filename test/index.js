@@ -533,13 +533,7 @@ exports.setTimeLimit = {
     },
 
     'Kill a long-running process': function(test) {
-        test.expect(3);
-
-        // fs.readFile needs to return something, even though no file
-        // actually exists
-        sinon.stub(fs, 'readFile', function(path, enc, done) {
-            done(null, '12345');            
-          });
+        test.expect(2);
 
         var options = { timeLimit: 1000, pidFile: 'file.pid' };
         utils.setTimeLimit(options, function(timer) {
@@ -548,39 +542,14 @@ exports.setTimeLimit = {
             }
             _clock.tick(1000);
             test.ok(childProcess.exec.called);
-            test.ok(childProcess.exec.calledWith('kill 12345'));
-            test.ok(fs.readFile.called);
+            test.ok(childProcess.exec.calledWith('kill $(cat ' + options.pidFile + ')'));
     
-            fs.readFile.restore();
-            test.done();
-          });
-    },
-
-    'Do nothing and return false if there\'s no PID file on the disk': function(test) {
-        test.expect(3);
-        sinon.spy(fs, 'readFile');
-
-        var options = { timeLimit: 1000, pidFile: 'file.pid' };
-        utils.setTimeLimit(options, function(timer) {
-            if (!timer) {
-              test.ok(true);
-            }
-            test.ok(fs.readFile.called);
-            test.ok(!childProcess.exec.called);
-    
-            fs.readFile.restore();
             test.done();
           });
     },
 
     'Don\'t kill the process if timer is cleared': function(test) {
-        test.expect(2);
-
-        // fs.readFile needs to return something, even though no file
-        // actually exists
-        sinon.stub(fs, 'readFile', function(path, enc, done) {
-            done(null, '12345');            
-          });
+        test.expect(1);
 
         var options = { timeLimit: 1000, pidFile: 'file.pid' };
         utils.setTimeLimit(options, function(timer) {
@@ -591,9 +560,7 @@ exports.setTimeLimit = {
             clearTimeout(timer);
             _clock.tick(999);
             test.ok(!childProcess.exec.called);
-            test.ok(fs.readFile.called);
     
-            fs.readFile.restore();
             test.done();
           });
     },
