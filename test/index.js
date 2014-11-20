@@ -542,78 +542,79 @@ exports.setTimeLimit = {
           });
 
         var options = { timeLimit: 1000, pidFile: 'file.pid' };
-        var timer = utils.setTimeLimit(options);
-        _clock.tick(1000);
-        test.ok(childProcess.exec.called);
-        test.ok(childProcess.exec.calledWith('kill 12345'));
-        test.ok(fs.readFile.called);
-
-        fs.readFile.restore();
-        test.done();
+        utils.setTimeLimit(options, function(timer) {
+            if (!timer) {
+              test.ok(false);
+            }
+            _clock.tick(1000);
+            test.ok(childProcess.exec.called);
+            test.ok(childProcess.exec.calledWith('kill 12345'));
+            test.ok(fs.readFile.called);
+    
+            fs.readFile.restore();
+            test.done();
+          });
     },
 
-    'Do nothing if there\'s no PID file on the disk': function(test) {
-        test.expect(2);
+    'Do nothing and return false if there\'s no PID file on the disk': function(test) {
+        test.expect(3);
         sinon.spy(fs, 'readFile');
 
         var options = { timeLimit: 1000, pidFile: 'file.pid' };
-        var timer = utils.setTimeLimit(options);
- 
-        test.ok(fs.readFile.called);
-        test.ok(!childProcess.exec.called);
-
-        fs.readFile.restore();
-        test.done();
+        utils.setTimeLimit(options, function(timer) {
+            if (!timer) {
+              test.ok(true);
+            }
+            test.ok(fs.readFile.called);
+            test.ok(!childProcess.exec.called);
+    
+            fs.readFile.restore();
+            test.done();
+          });
     },
 
-
     'Don\'t kill the process if timer is cleared': function(test) {
-        test.expect(1);
+        test.expect(2);
+
+        // fs.readFile needs to return something, even though no file
+        // actually exists
+        sinon.stub(fs, 'readFile', function(path, enc, done) {
+            done(null, '12345');            
+          });
+
         var options = { timeLimit: 1000, pidFile: 'file.pid' };
-        var timer = utils.setTimeLimit(options);
-        _clock.tick(999);
-        clearTimeout(timer);
-        _clock.tick(999);
-        test.ok(!childProcess.exec.called);
-        test.done();
+        utils.setTimeLimit(options, function(timer) {
+            if (!timer) {
+              test.ok(false);
+            }
+            _clock.tick(999);
+            clearTimeout(timer);
+            _clock.tick(999);
+            test.ok(!childProcess.exec.called);
+            test.ok(fs.readFile.called);
+    
+            fs.readFile.restore();
+            test.done();
+          });
     },
 
     'Don\'t barf if there\'s no PID specified': function(test) {
-        test.expect(2);
+        test.expect(3);
         sinon.spy(fs, 'readFile');
 
         var options = { timeLimit: 1000 };
-        var timer = utils.setTimeLimit(options);
+        utils.setTimeLimit(options, function(timer) {
+            if (!timer) {
+              test.ok(true);
+            }
  
-        test.ok(!fs.readFile.called);
-        test.ok(!childProcess.exec.called);
-
-        fs.readFile.restore();
-        test.done();
+            test.ok(!fs.readFile.called);
+            test.ok(!childProcess.exec.called);
+    
+            fs.readFile.restore();
+            test.done();
+          });
     },
-
-
-//    'Kill a long-running process': function(test) {
-//        test.expect(1);
-//        var options = { timeLimit: 1000 };
-//        utils.setTimeLimit(options, 'file.pid', function(timer) {
-//            _clock.tick(1000);
-//            test.ok(childProcess.exec.called);
-//            test.done();
-//          });
-//    },
-//
-//    'Don\'t kill the process if timer is cleared': function(test) {
-//        test.expect(1);
-//        var options = { timeLimit: 1000 };
-//        utils.setTimeLimit(options, 'file.pid', function(timer) {
-//            _clock.tick(999);
-//            clearTimeout(timer);
-//            _clock.tick(999);
-//            test.ok(!childProcess.exec.called);
-//            test.done();
-//          });
-//    },
 };
 
 
@@ -662,6 +663,29 @@ exports.stopTimer = {
             test.done();
           }, 10);
     },
+};
+
+/**
+ * writePidToFile
+ */
+exports.writePidToFile = {
+
+    'Return an echo-to-file command string if pidFile is provided': function(test) {
+        test.expect(1);
+        var options = { pidFile: 'someFile.pid' };
+        test.equal(utils.echoPidToFile(options), ' & echo $! > someFile.pid');
+        test.done();
+    },
+
+    'Return an empty string if no pidFile is provided': function(test) {
+        test.expect(2);
+        var options;
+        test.equal(utils.echoPidToFile(options), '');
+        options = { some: 'junk' };
+        test.equal(utils.echoPidToFile(options), '');
+        test.done();
+    },
+
 };
 
 /**

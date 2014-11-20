@@ -360,16 +360,17 @@ module.exports = function() {
      * Set time limit on operating system process
      *
      * @param object
+     * @param function
      *
      * @return timeoutObject
      */
-    function _setTimeLimit(options) {
+    function _setTimeLimit(options, done) {
         if (options && options.timeLimit && options.pidFile) {
           fs.readFile(options.pidFile, 'utf8', function(err, pid) {
-              if (err || !pid) {
-                return false;
-              }
-              var timeout = setTimeout(function() {
+                if (err || !pid) {
+                  return done(false);
+                }
+                var timeout = setTimeout(function() {
                 var kill = 'kill ' + pid;
                 if (logLevel === 'trace') logger.warn('process', kill);
                 childProcess.exec(kill, function(err, stdout, stderr) {
@@ -383,38 +384,15 @@ module.exports = function() {
                       if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
                     }
                   });
-              }, options.timeLimit);
-              return timeout;
+                }, options.timeLimit);
+                done(timeout);
             });
         }
-        return false;
+        else {
+          done(false);
+        }
       };
     exports.setTimeLimit = _setTimeLimit;
-
-//    function _setTimeLimit(options, pidFile, done) {
-//        if (options && options.timeLimit) {
-//          var timeout = setTimeout(function() {
-//            var kill = 'kill $(cat ' + pidFile + ')';
-//            if (logLevel === 'trace') logger.warn('process', kill);
-//            childProcess.exec(kill, function(err, stdout, stderr) {
-//                if (err) {
-//                  if (logLevel === 'trace') logger.error('process', 'timeout', err);
-//                }
-//                if (stderr) {
-//                  if (logLevel === 'trace') logger.warn('process', 'timeout', stderr);
-//                }
-//                if (stdout) {
-//                  if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
-//                }
-//              });
-//          }, options.timeLimit);
-//          done(timeout);
-//        }
-//        else {
-//          done(false);
-//        }
-//      };
-//    exports.setTimeLimit = _setTimeLimit;
 
     /**
      * Clear the timer and record the time remaining
@@ -429,6 +407,22 @@ module.exports = function() {
         }
       };
     exports.stopTimer = _stopTimer;
+
+    /**
+     * Format the echo-to-PID-file command string
+     *
+     * @param object
+     *
+     * @return string
+     */
+    function _echoPidToFile(options) {
+        var command = '';
+        if (options && options.pidFile) {
+          command =  ' & echo $! > ' + options.pidFile;
+        }
+        return command;
+      };
+    exports.echoPidToFile = _echoPidToFile;
 
     /**
      * Get time left
@@ -474,7 +468,6 @@ module.exports = function() {
         }
       };
     exports.deleteTmpFiles = _deleteTmpFiles;
-
 
     return exports;
   }();
