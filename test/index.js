@@ -533,7 +533,7 @@ exports.setTimeLimit = {
     },
 
     'Kill a long-running process': function(test) {
-        test.expect(2);
+        test.expect(3);
 
         var options = { timeLimit: 1000, pidFile: 'file.pid' };
         utils.setTimeLimit(options, function(timer) {
@@ -543,13 +543,14 @@ exports.setTimeLimit = {
             _clock.tick(1000);
             test.ok(childProcess.exec.called);
             test.ok(childProcess.exec.calledWith('kill $(cat ' + options.pidFile + ')'));
+            test.equal(options.returnNow, 'Sorry, that file took too long to process');
     
             test.done();
           });
     },
 
     'Don\'t kill the process if timer is cleared': function(test) {
-        test.expect(1);
+        test.expect(2);
 
         var options = { timeLimit: 1000, pidFile: 'file.pid' };
         utils.setTimeLimit(options, function(timer) {
@@ -560,6 +561,7 @@ exports.setTimeLimit = {
             clearTimeout(timer);
             _clock.tick(999);
             test.ok(!childProcess.exec.called);
+            test.equal(options.returnNow, undefined);
     
             test.done();
           });

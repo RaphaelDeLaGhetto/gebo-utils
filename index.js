@@ -379,6 +379,7 @@ module.exports = function() {
                     if (stdout) {
                       if (logLevel === 'trace') logger.info('process', 'timeout', stdout);
                     }
+                    options.returnNow = 'Sorry, that file took too long to process';
                   });
                 }, options.timeLimit);
           done(timeout);
